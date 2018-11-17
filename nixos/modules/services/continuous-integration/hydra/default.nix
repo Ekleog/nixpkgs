@@ -62,13 +62,6 @@ in
         '';
       };
 
-      package = mkOption {
-        type = types.path;
-        default = pkgs.hydra;
-        defaultText = "pkgs.hydra";
-        description = "The Hydra package.";
-      };
-
       hydraURL = mkOption {
         type = types.str;
         description = ''
@@ -237,7 +230,7 @@ in
         use-substitutes = ${if cfg.useSubstitutes then "1" else "0"}
       '';
 
-    environment.systemPackages = [ cfg.package ];
+    environment.systemPackages = [ pkgs.hydra ];
 
     environment.variables = hydraEnv;
 
@@ -297,7 +290,7 @@ in
           chown hydra.hydra ${cfg.gcRootsDir}
           chmod 2775 ${cfg.gcRootsDir}
         '';
-        serviceConfig.ExecStart = "${cfg.package}/bin/hydra-init";
+        serviceConfig.ExecStart = "${pkgs.hydra}/bin/hydra-init";
         serviceConfig.PermissionsStartOnly = true;
         serviceConfig.User = "hydra";
         serviceConfig.Type = "oneshot";
@@ -312,7 +305,7 @@ in
         restartTriggers = [ hydraConf ];
         serviceConfig =
           { ExecStart =
-              "@${cfg.package}/bin/hydra-server hydra-server -f -h '${cfg.listenHost}' "
+              "@${pkgs.hydra}/bin/hydra-server hydra-server -f -h '${cfg.listenHost}' "
               + "-p ${toString cfg.port} --max_spare_servers 5 --max_servers 25 "
               + "--max_requests 100 ${optionalString cfg.debugServer "-d"}";
             User = "hydra-www";
@@ -325,15 +318,15 @@ in
       { wantedBy = [ "multi-user.target" ];
         requires = [ "hydra-init.service" ];
         after = [ "hydra-init.service" "network.target" ];
-        path = [ cfg.package pkgs.nettools pkgs.openssh pkgs.bzip2 config.nix.package ];
+        path = [ pkgs.hydra pkgs.nettools pkgs.openssh pkgs.bzip2 config.nix.package ];
         restartTriggers = [ hydraConf ];
         environment = env // {
           PGPASSFILE = "${baseDir}/pgpass-queue-runner"; # grrr
           IN_SYSTEMD = "1"; # to get log severity levels
         };
         serviceConfig =
-          { ExecStart = "@${cfg.package}/bin/hydra-queue-runner hydra-queue-runner -v --option build-use-substitutes ${boolToString cfg.useSubstitutes}";
-            ExecStopPost = "${cfg.package}/bin/hydra-queue-runner --unlock";
+          { ExecStart = "@${pkgs.hydra}/bin/hydra-queue-runner hydra-queue-runner -v --option build-use-substitutes ${boolToString cfg.useSubstitutes}";
+            ExecStopPost = "${pkgs.hydra}/bin/hydra-queue-runner --unlock";
             User = "hydra-queue-runner";
             Restart = "always";
 
@@ -347,11 +340,11 @@ in
       { wantedBy = [ "multi-user.target" ];
         requires = [ "hydra-init.service" ];
         after = [ "hydra-init.service" "network.target" ];
-        path = with pkgs; [ cfg.package nettools jq ];
+        path = with pkgs; [ pkgs.hydra nettools jq ];
         restartTriggers = [ hydraConf ];
         environment = env;
         serviceConfig =
-          { ExecStart = "@${cfg.package}/bin/hydra-evaluator hydra-evaluator";
+          { ExecStart = "@${pkgs.hydra}/bin/hydra-evaluator hydra-evaluator";
             User = "hydra";
             Restart = "always";
             WorkingDirectory = baseDir;
@@ -363,7 +356,7 @@ in
         after = [ "hydra-init.service" ];
         environment = env;
         serviceConfig =
-          { ExecStart = "@${cfg.package}/bin/hydra-update-gc-roots hydra-update-gc-roots";
+          { ExecStart = "@${pkgs.hydra}/bin/hydra-update-gc-roots hydra-update-gc-roots";
             User = "hydra";
           };
         startAt = "2,14:15";
@@ -374,7 +367,7 @@ in
         after = [ "hydra-init.service" ];
         environment = env;
         serviceConfig =
-          { ExecStart = "@${cfg.package}/bin/hydra-send-stats hydra-send-stats";
+          { ExecStart = "@${pkgs.hydra}/bin/hydra-send-stats hydra-send-stats";
             User = "hydra";
           };
       };

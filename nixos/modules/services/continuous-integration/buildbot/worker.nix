@@ -7,7 +7,7 @@ with lib;
 let
   cfg = config.services.buildbot-worker;
 
-  python = cfg.package.pythonModule;
+  python = pkgs.pythonPackages.buildbot-worker.pythonModule;
 
   tacFile = pkgs.writeText "aur-buildbot-worker.tac" ''
     import os
@@ -116,13 +116,6 @@ in {
         description = "Specifies the Buildbot Worker connection string.";
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.pythonPackages.buildbot-worker;
-        defaultText = "pkgs.pythonPackages.buildbot-worker";
-        description = "Package to use for buildbot worker.";
-        example = literalExample "pkgs.python3Packages.buildbot-worker";
-      };
 
       packages = mkOption {
         default = with pkgs; [ git ];
@@ -156,7 +149,7 @@ in {
       after = [ "network.target" "buildbot-master.service" ];
       wantedBy = [ "multi-user.target" ];
       path = cfg.packages;
-      environment.PYTHONPATH = "${python.withPackages (p: [ cfg.package ])}/${python.sitePackages}";
+      environment.PYTHONPATH = "${python.withPackages (p: [ pkgs.pythonPackages.buildbot-worker ])}/${python.sitePackages}";
 
       preStart = ''
         mkdir -vp "${cfg.buildbotDir}/info"

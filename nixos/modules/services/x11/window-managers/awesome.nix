@@ -5,7 +5,7 @@ with lib;
 let
 
   cfg = config.services.xserver.windowManager.awesome;
-  awesome = cfg.package;
+  awesome = pkgs.awesome;
   getLuaPath = lib : dir : "${lib}/${dir}/lua/${pkgs.luaPackages.lua.luaversion}";
   makeSearchPath = lib.concatMapStrings (path:
     " --search " + (getLuaPath path "share") +
@@ -28,13 +28,6 @@ in
         type = types.listOf types.package;
         description = "List of lua packages available for being used in the Awesome configuration.";
         example = literalExample "[ luaPackages.oocairo ]";
-      };
-
-      package = mkOption {
-        default = null;
-        type = types.nullOr types.package;
-        description = "Package to use for running the Awesome WM.";
-        apply = pkg: if pkg == null then pkgs.awesome else pkg;
       };
 
       noArgb = mkOption {

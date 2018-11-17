@@ -37,14 +37,6 @@ with lib;
       description = "Hadoop yarn-site.xml definition";
     };
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.hadoop;
-      defaultText = "pkgs.hadoop";
-      example = literalExample "pkgs.hadoop";
-      description = ''
-      '';
-    };
   };
 
 

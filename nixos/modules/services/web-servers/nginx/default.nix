@@ -59,9 +59,9 @@ let
 
     ${optionalString (cfg.httpConfig == "" && cfg.config == "") ''
     http {
-      include ${cfg.package}/conf/mime.types;
-      include ${cfg.package}/conf/fastcgi.conf;
-      include ${cfg.package}/conf/uwsgi_params;
+      include ${pkgs.nginxStable}/conf/mime.types;
+      include ${pkgs.nginxStable}/conf/fastcgi.conf;
+      include ${pkgs.nginxStable}/conf/uwsgi_params;
 
       ${optionalString (cfg.resolver.addresses != []) ''
         resolver ${toString cfg.resolver.addresses} ${optionalString (cfg.resolver.valid != "") "valid=${cfg.resolver.valid}"};
@@ -153,9 +153,9 @@ let
 
     ${optionalString (cfg.httpConfig != "") ''
     http {
-      include ${cfg.package}/conf/mime.types;
-      include ${cfg.package}/conf/fastcgi.conf;
-      include ${cfg.package}/conf/uwsgi_params;
+      include ${pkgs.nginxStable}/conf/mime.types;
+      include ${pkgs.nginxStable}/conf/fastcgi.conf;
+      include ${pkgs.nginxStable}/conf/uwsgi_params;
       ${cfg.httpConfig}
     }''}
 
@@ -330,16 +330,7 @@ in
         ";
       };
 
-      package = mkOption {
-        default = pkgs.nginxStable;
-        defaultText = "pkgs.nginxStable";
-        type = types.package;
-        description = "
-          Nginx package to use. This defaults to the stable version. Note
-          that the nginx team recommends to use the mainline version which
-          available in nixpkgs as <literal>nginxMainline</literal>.
-        ";
-      };
+        
 
       logError = mkOption {
         default = "stderr";
@@ -638,10 +629,10 @@ in
       preStart =
         ''
         ${cfg.preStart}
-        ${cfg.package}/bin/nginx -c ${configFile} -p ${cfg.stateDir} -t
+        ${pkgs.nginxStable}/bin/nginx -c ${configFile} -p ${cfg.stateDir} -t
         '';
       serviceConfig = {
-        ExecStart = "${cfg.package}/bin/nginx -c ${configFile} -p ${cfg.stateDir}";
+        ExecStart = "${pkgs.nginxStable}/bin/nginx -c ${configFile} -p ${cfg.stateDir}";
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
         Restart = "always";
         RestartSec = "10s";

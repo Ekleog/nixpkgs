@@ -110,15 +110,6 @@ in
         '';
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.slurm;
-        defaultText = "pkgs.slurm";
-        example = literalExample "pkgs.slurm-full";
-        description = ''
-          The package to use for slurm binaries.
-        '';
-      };
 
       controlMachine = mkOption {
         type = types.nullOr types.str;
@@ -255,7 +246,7 @@ in
         builder = pkgs.writeText "builder.sh" ''
           source $stdenv/setup
           mkdir -p $out/bin
-          find  ${getBin cfg.package}/bin -type f -executable | while read EXE
+          find  ${getBin pkgs.slurm}/bin -type f -executable | while read EXE
           do
             exename="$(basename $EXE)"
             wrappername="$out/bin/$exename"
@@ -272,7 +263,7 @@ in
           done
 
           mkdir -p $out/share
-          ln -s ${getBin cfg.package}/share/man $out/share/man
+          ln -s ${getBin pkgs.slurm}/share/man $out/share/man
         '';
       };
 
@@ -348,7 +339,7 @@ in
 
       serviceConfig = {
         Type = "forking";
-        ExecStart = "${cfg.package}/bin/slurmdbd";
+        ExecStart = "${pkgs.slurm}/bin/slurmdbd";
         PIDFile = "/run/slurmdbd.pid";
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
       };

@@ -42,7 +42,7 @@ let
   configPath = pkgs.writeText "smokeping.conf" configFile;
   cgiHome = pkgs.writeScript "smokeping.fcgi" ''
     #!${pkgs.bash}/bin/bash
-    ${cfg.package}/bin/smokeping_cgi ${configPath}
+    ${pkgs.smokeping}/bin/smokeping_cgi ${configPath}
   '';
 in
 
@@ -157,12 +157,7 @@ in
         example = "no-reply@yourdomain.com";
         description = "Email contact for owner";
       };
-      package = mkOption {
-        type = types.package;
-        default = pkgs.smokeping;
-        defaultText = "pkgs.smokeping";
-        description = "Specify a custom smokeping package";
-      };
+        
       port = mkOption {
         type = types.int;
         default = 8081;
@@ -231,7 +226,7 @@ in
       };
       smokeMailTemplate = mkOption {
         type = types.string;
-        default = "${cfg.package}/etc/smokemail.dist";
+        default = "${pkgs.smokeping}/etc/smokemail.dist";
         description = "Specify the smokemail template for alerts.";
       };
       targetConfig = mkOption {
@@ -296,13 +291,13 @@ in
       preStart = ''
         mkdir -m 0755 -p ${smokepingHome}/cache ${smokepingHome}/data
         rm -f ${smokepingHome}/cropper
-        ln -s ${cfg.package}/htdocs/cropper ${smokepingHome}/cropper
+        ln -s ${pkgs.smokeping}/htdocs/cropper ${smokepingHome}/cropper
         cp ${cgiHome} ${smokepingHome}/smokeping.fcgi
-        ${cfg.package}/bin/smokeping --check --config=${configPath}
-        ${cfg.package}/bin/smokeping --static --config=${configPath}
+        ${pkgs.smokeping}/bin/smokeping --check --config=${configPath}
+        ${pkgs.smokeping}/bin/smokeping --static --config=${configPath}
         chown -R ${cfg.user} ${smokepingHome}
       '';
-      script = ''${cfg.package}/bin/smokeping --config=${configPath} --nodaemon'';
+      script = ''${pkgs.smokeping}/bin/smokeping --config=${configPath} --nodaemon'';
     };
     systemd.services.thttpd = mkIf cfg.webService {
       wantedBy = [ "multi-user.target"];

@@ -27,16 +27,6 @@ in
       '';
     };
 
-    package = mkOption {
-      type        = types.package;
-      default     = pkgs.i3;
-      defaultText = "pkgs.i3";
-      example     = "pkgs.i3-gaps";
-      description = ''
-        i3 package to use.
-      '';
-    };
-
     extraPackages = mkOption {
       type = with types; listOf package;
       default = with pkgs; [ dmenu i3status i3lock ];
@@ -59,13 +49,13 @@ in
       start = ''
         ${cfg.extraSessionCommands}
 
-        ${cfg.package}/bin/i3 ${optionalString (cfg.configFile != null)
+        ${pkgs.i3}/bin/i3 ${optionalString (cfg.configFile != null)
           "-c \"${cfg.configFile}\""
         } &
         waitPID=$!
       '';
     }];
-    environment.systemPackages = [ cfg.package ] ++ cfg.extraPackages;
+    environment.systemPackages = [ pkgs.i3 ] ++ cfg.extraPackages;
   };
 
   imports = [

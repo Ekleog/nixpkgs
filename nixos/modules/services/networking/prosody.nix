@@ -282,19 +282,6 @@ in
         description = "Whether to enable the prosody server";
       };
 
-      package = mkOption {
-        type = types.package;
-        description = "Prosody package to use";
-        default = pkgs.prosody;
-        defaultText = "pkgs.prosody";
-        example = literalExample ''
-          pkgs.prosody.override {
-            withExtraLibs = [ pkgs.luaPackages.lpty ];
-            withCommunityModules = [ "auth_external" ];
-          };
-        '';
-      };
-
       dataDir = mkOption {
         type = types.string;
         description = "Directory where Prosody stores its data";
@@ -435,7 +422,7 @@ in
 
   config = mkIf cfg.enable {
 
-    environment.systemPackages = [ cfg.package ];
+    environment.systemPackages = [ pkgs.prosody ];
 
     environment.etc."prosody/prosody.cfg.lua".text = ''
 
@@ -460,7 +447,7 @@ in
         ${ lib.concatStringsSep "\n\ \ " (lib.mapAttrsToList
           (name: val: optionalString val "${toLua name};")
         cfg.modules) }
-        ${ lib.concatStringsSep "\n" (map (x: "${toLua x};") cfg.package.communityModules)}
+        ${ lib.concatStringsSep "\n" (map (x: "${toLua x};") pkgs.prosody.communityModules)}
         ${ lib.concatStringsSep "\n" (map (x: "${toLua x};") cfg.extraModules)}
       };
 
@@ -511,7 +498,7 @@ in
         Type = "forking";
         RuntimeDirectory = [ "prosody" ];
         PIDFile = "/run/prosody/prosody.pid";
-        ExecStart = "${cfg.package}/bin/prosodyctl start";
+        ExecStart = "${pkgs.prosody}/bin/prosodyctl start";
       };
     };
 

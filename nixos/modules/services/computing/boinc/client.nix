@@ -8,7 +8,7 @@ let
 
   fhsEnv = pkgs.buildFHSUserEnv {
     name = "boinc-fhs-env";
-    targetPkgs = pkgs': [ cfg.package ] ++ cfg.extraEnvPackages;
+    targetPkgs = pkgs': [ pkgs.boinc ] ++ cfg.extraEnvPackages;
     runScript = "/bin/boinc_client";
   };
   fhsEnvExecutable = "${fhsEnv}/bin/${fhsEnv.name}";
@@ -24,15 +24,6 @@ in
           option is set to true, the boinc_client daemon will be run as a
           background service. The boinccmd command can be used to control the
           daemon.
-        '';
-      };
-
-      package = mkOption {
-        type = types.package;
-        default = pkgs.boinc;
-        defaultText = "pkgs.boinc";
-        description = ''
-          Which BOINC package to use.
         '';
       };
 
@@ -96,7 +87,7 @@ in
     };
 
     config = mkIf cfg.enable {
-      environment.systemPackages = [cfg.package];
+      environment.systemPackages = [pkgs.boinc];
 
       users.users.boinc = {
         createHome = false;

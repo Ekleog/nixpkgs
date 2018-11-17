@@ -10,14 +10,7 @@ in  {
   options.services.strongswan-swanctl = {
     enable = mkEnableOption "strongswan-swanctl service";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.strongswan;
-      defaultText = "pkgs.strongswan";
-      description = ''
-        The strongswan derivation to use.
-      '';
-    };
+      
 
     strongswan.extraConfig = mkOption {
       type = types.str;
@@ -71,10 +64,10 @@ in  {
       };
       restartTriggers = [ config.environment.etc."swanctl/swanctl.conf".source ];
       serviceConfig = {
-        ExecStart     = "${cfg.package}/sbin/charon-systemd";
+        ExecStart     = "${pkgs.strongswan}/sbin/charon-systemd";
         Type          = "notify";
-        ExecStartPost = "${cfg.package}/sbin/swanctl --load-all --noprompt";
-        ExecReload    = "${cfg.package}/sbin/swanctl --reload";
+        ExecStartPost = "${pkgs.strongswan}/sbin/swanctl --load-all --noprompt";
+        ExecReload    = "${pkgs.strongswan}/sbin/swanctl --reload";
         Restart       = "on-abnormal";
       };
     };

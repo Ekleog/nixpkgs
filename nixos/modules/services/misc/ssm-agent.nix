@@ -19,23 +19,18 @@ in {
   options.services.ssm-agent = {
     enable = mkEnableOption "AWS SSM agent";
 
-    package = mkOption {
-      type = types.path;
-      description = "The SSM agent package to use";
-      default = pkgs.ssm-agent;
-      defaultText = "pkgs.ssm-agent";
-    };
+       
   };
 
   config = mkIf cfg.enable {
     systemd.services.ssm-agent = {
-      inherit (cfg.package.meta) description;
+      inherit (pkgs.ssm-agent.meta) description;
       after    = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
 
       path = [ fake-lsb-release ];
       serviceConfig = {
-        ExecStart = "${cfg.package.bin}/bin/agent";
+        ExecStart = "${pkgs.ssm-agent.bin}/bin/agent";
         KillMode = "process";
         Restart = "on-failure";
         RestartSec = "15min";

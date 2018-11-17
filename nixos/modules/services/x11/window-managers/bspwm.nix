@@ -11,15 +11,7 @@ in
     services.xserver.windowManager.bspwm = {
       enable = mkEnableOption "bspwm";
 
-      package = mkOption {
-        type        = types.package;
-        default     = pkgs.bspwm;
-        defaultText = "pkgs.bspwm";
-        example     = "pkgs.bspwm-unstable";
-        description = ''
-          bspwm package to use.
-        '';
-      };
+         
       configFile = mkOption {
         type        = with types; nullOr path;
         example     = "${pkgs.bspwm}/share/doc/bspwm/examples/bspwmrc";
@@ -31,15 +23,7 @@ in
       };
 
       sxhkd = {
-        package = mkOption {
-          type        = types.package;
-          default     = pkgs.sxhkd;
-          defaultText = "pkgs.sxhkd";
-          example     = "pkgs.sxhkd-unstable";
-          description = ''
-            sxhkd package to use.
-          '';
-        };
+           
         configFile = mkOption {
           type        = with types; nullOr path;
           example     = "${pkgs.bspwm}/share/doc/bspwm/examples/sxhkdrc";
@@ -58,12 +42,12 @@ in
       name  = "bspwm";
       start = ''
         export _JAVA_AWT_WM_NONREPARENTING=1
-        SXHKD_SHELL=/bin/sh ${cfg.sxhkd.package}/bin/sxhkd ${optionalString (cfg.sxhkd.configFile != null) "-c \"${cfg.sxhkd.configFile}\""} &
-        ${cfg.package}/bin/bspwm ${optionalString (cfg.configFile != null) "-c \"${cfg.configFile}\""} &
+        SXHKD_SHELL=/bin/sh ${pkgs.sxhkd}/bin/sxhkd ${optionalString (cfg.sxhkd.configFile != null) "-c \"${cfg.sxhkd.configFile}\""} &
+        ${pkgs.bspwm}/bin/bspwm ${optionalString (cfg.configFile != null) "-c \"${cfg.configFile}\""} &
         waitPID=$!
       '';
     };
-    environment.systemPackages = [ cfg.package ];
+    environment.systemPackages = [ pkgs.bspwm ];
   };
 
   imports = [

@@ -7,7 +7,7 @@ with lib;
 let
   cfg = config.services.buildbot-master;
 
-  python = cfg.package.pythonModule;
+  python = pkgs.pythonPackages.buildbot-full.pythonModule;
 
   escapeStr = s: escape ["'"] s;
 
@@ -197,13 +197,6 @@ in {
         description = "Specifies port number on which the buildbot HTTP interface listens.";
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.pythonPackages.buildbot-full;
-        defaultText = "pkgs.pythonPackages.buildbot-full";
-        description = "Package to use for buildbot.";
-        example = literalExample "pkgs.python3Packages.buildbot-full";
-      };
 
       packages = mkOption {
         default = [ pkgs.git ];
@@ -242,13 +235,13 @@ in {
       after = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       path = cfg.packages ++ cfg.pythonPackages python.pkgs;
-      environment.PYTHONPATH = "${python.withPackages (self: cfg.pythonPackages self ++ [ cfg.package ])}/${python.sitePackages}";
+      environment.PYTHONPATH = "${python.withPackages (self: cfg.pythonPackages self ++ [ pkgs.pythonPackages.buildbot-full ])}/${python.sitePackages}";
 
       preStart = ''
         mkdir -vp "${cfg.buildbotDir}"
         # Link the tac file so buildbot command line tools recognize the directory
         ln -sf "${tacFile}" "${cfg.buildbotDir}/buildbot.tac"
-        ${cfg.package}/bin/buildbot create-master --db "${cfg.dbUrl}" "${cfg.buildbotDir}"
+        ${pkgs.pythonPackages.buildbot-full}/bin/buildbot create-master --db "${cfg.dbUrl}" "${cfg.buildbotDir}"
         rm -f buildbot.tac.new master.cfg.sample
       '';
 

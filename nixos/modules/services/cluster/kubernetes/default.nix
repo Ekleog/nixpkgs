@@ -39,7 +39,7 @@ let
   infraContainer = pkgs.dockerTools.buildImage {
     name = "pause";
     tag = "latest";
-    contents = cfg.package.pause;
+    contents = pkgs.kubernetes.pause;
     config.Cmd = "/bin/pause";
   };
 
@@ -177,12 +177,7 @@ in {
       type = types.listOf (types.enum ["master" "node"]);
     };
 
-    package = mkOption {
-      description = "Kubernetes package to use.";
-      type = types.package;
-      default = pkgs.kubernetes;
-      defaultText = "pkgs.kubernetes";
-    };
+       
 
     verbose = mkOption {
       description = "Kubernetes enable verbose mode for debugging.";
@@ -833,7 +828,7 @@ in {
           Slice = "kubernetes.slice";
           CPUAccounting = true;
           MemoryAccounting = true;
-          ExecStart = ''${cfg.package}/bin/kubelet \
+          ExecStart = ''${pkgs.kubernetes}/bin/kubelet \
             ${optionalString (taints != "")
               "--register-with-taints=${taints}"} \
             --kubeconfig=${mkKubeConfig "kubelet" cfg.kubelet.kubeconfig} \
@@ -906,7 +901,7 @@ in {
         after = [ "network.target" "docker.service" ];
         serviceConfig = {
           Slice = "kubernetes.slice";
-          ExecStart = ''${cfg.package}/bin/kube-apiserver \
+          ExecStart = ''${pkgs.kubernetes}/bin/kube-apiserver \
             --etcd-servers=${concatStringsSep "," cfg.etcd.servers} \
             ${optionalString (cfg.etcd.caFile != null)
               "--etcd-cafile=${cfg.etcd.caFile}"} \
@@ -978,7 +973,7 @@ in {
         after = [ "kube-apiserver.service" ];
         serviceConfig = {
           Slice = "kubernetes.slice";
-          ExecStart = ''${cfg.package}/bin/kube-scheduler \
+          ExecStart = ''${pkgs.kubernetes}/bin/kube-scheduler \
             --address=${cfg.scheduler.address} \
             --port=${toString cfg.scheduler.port} \
             --leader-elect=${boolToString cfg.scheduler.leaderElect} \
@@ -1007,7 +1002,7 @@ in {
           RestartSec = "30s";
           Restart = "on-failure";
           Slice = "kubernetes.slice";
-          ExecStart = ''${cfg.package}/bin/kube-controller-manager \
+          ExecStart = ''${pkgs.kubernetes}/bin/kube-controller-manager \
             --address=${cfg.controllerManager.address} \
             --port=${toString cfg.controllerManager.port} \
             --kubeconfig=${mkKubeConfig "kube-controller-manager" cfg.controllerManager.kubeconfig} \
@@ -1045,7 +1040,7 @@ in {
         path = [pkgs.iptables pkgs.conntrack_tools];
         serviceConfig = {
           Slice = "kubernetes.slice";
-          ExecStart = ''${cfg.package}/bin/kube-proxy \
+          ExecStart = ''${pkgs.kubernetes}/bin/kube-proxy \
             --kubeconfig=${mkKubeConfig "kube-proxy" cfg.proxy.kubeconfig} \
             --bind-address=${cfg.proxy.address} \
             ${optionalString (cfg.proxy.featureGates != [])
@@ -1110,7 +1105,7 @@ in {
         path = [ pkgs.gawk ];
         serviceConfig = {
           Slice = "kubernetes.slice";
-          ExecStart = "${cfg.package}/bin/kube-addons";
+          ExecStart = "${pkgs.kubernetes}/bin/kube-addons";
           WorkingDirectory = cfg.dataDir;
           User = "kubernetes";
           Group = "kubernetes";
@@ -1136,7 +1131,7 @@ in {
         "d /var/lib/kubernetes 0755 kubernetes kubernetes -"
       ];
 
-      environment.systemPackages = [ cfg.package ];
+      environment.systemPackages = [ pkgs.kubernetes ];
       users.users = singleton {
         name = "kubernetes";
         uid = config.ids.uids.kubernetes;
