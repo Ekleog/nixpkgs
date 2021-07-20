@@ -1,18 +1,31 @@
 { lib
 , python3
 , fetchpatch
+, pkgsCross
+, avrdude
+, dfu-programmer
+, dfu-util
+, gcc-arm-embedded
 }:
 
 let
   inherit (python3.pkgs) buildPythonApplication fetchPypi;
+  qmk-dotty-dict = python3.pkgs.dotty-dict.overridePythonAttrs (old: rec {
+    pname = "qmk_dotty_dict";
+    version = "1.3.0.post1";
+    src = fetchPypi {
+      inherit pname version;
+      sha256 = "18kyzk9a00xbxjsph2a9p03zx05f9dw993n66mlamgv06qwiwq9v";
+    };
+  });
 in
 buildPythonApplication rec {
   pname = "qmk";
-  version = "0.0.52";
+  version = "0.2.2";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-mNF+bRhaL6JhNbROmjYDHkKKokRIALd5FZbRt9Kg5XQ=";
+    sha256 = "18lfsa4wn86j2004wdf4v5ch2qx6n64cas3jiihfb4hnsqibhnhx";
   };
 
   nativeBuildInputs = with python3.pkgs; [
@@ -27,13 +40,23 @@ buildPythonApplication rec {
     appdirs
     argcomplete
     colorama
-    dotty-dict
+    #dotty-dict # See https://pypi.org/project/qmk-dotty-dict/
+    qmk-dotty-dict
     hid
     hjson
     jsonschema
     milc
     pygments
+    pyrsistent
     pyusb
+  ] ++ [ # Binaries need to be in the path so this is in propagatedBuildInputs
+    avrdude
+    dfu-programmer
+    dfu-util
+    gcc-arm-embedded
+    pkgsCross.avr.buildPackages.binutils
+    pkgsCross.avr.buildPackages.gcc8
+    pkgsCross.avr.libcCross
   ];
 
   # no tests implemented
@@ -57,6 +80,6 @@ buildPythonApplication rec {
       - ... and many more!
     '';
     license = licenses.mit;
-    maintainers = with maintainers; [ bhipple ];
+    maintainers = with maintainers; [ bhipple ekleog ];
   };
 }
